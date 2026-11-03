@@ -503,12 +503,6 @@ export default function MaterialesOrden({ orden }: Props) {
           </p>
         )}
 
-        <p className="px-3 py-2 text-[11px] leading-relaxed text-foreground-500">
-          El orden es: solicitado → incorporado a la cotización → autorizado por el cliente →
-          despachado por administración → utilizado por el mecánico. Registrar o despachar un
-          repuesto no lo marca como utilizado, y marcar «utilizado» no descuenta inventario otra vez.
-        </p>
-
         {(orden.utilizaciones ?? []).length > 0 && (
           <div className="border-t border-background-800 px-3 py-2">
             <p className="text-[11px] uppercase tracking-[0.04em] text-foreground-500">

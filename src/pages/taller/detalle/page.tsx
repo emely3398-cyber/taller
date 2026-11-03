@@ -382,11 +382,6 @@ export default function OrdenDetallePage() {
                   </tbody>
                 </table>
               </div>
-              <p className="border-t border-background-800 px-3 py-2 text-[11px] text-foreground-500">
-                El despacho descuenta existencias una sola vez. El repuesto no se marca como
-                utilizado automáticamente: eso se registra en «Repuestos y materiales» cuando se
-                instala.
-              </p>
               {!esMecanico && <DespachoRepuesto orden={orden} />}
             </Panel>
           </div>
