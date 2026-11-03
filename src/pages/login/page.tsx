@@ -37,9 +37,9 @@ export default function LoginPage() {
           </div>
           <div className="min-w-0">
             <p className="truncate text-[13px] font-semibold text-foreground-50">
-              Gestión interna
+              Sistema del taller
             </p>
-            <p className="truncate text-[11px] text-foreground-500">Taller y punto de venta</p>
+            <p className="truncate text-[11px] text-foreground-500">Taller y ventas</p>
           </div>
         </div>
 
@@ -47,7 +47,7 @@ export default function LoginPage() {
           <div className="border-b border-background-800 px-4 py-3">
             <h1 className="text-[15px] font-semibold text-foreground-50">Iniciar sesión</h1>
             <p className="mt-1 text-[12px] text-foreground-400">
-              Ingrese con su usuario para acceder a los módulos del sistema.
+              Ingresa tu usuario y contraseña.
             </p>
           </div>
 

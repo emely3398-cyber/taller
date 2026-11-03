@@ -126,14 +126,14 @@ export default function DiagnosticoOrden({ orden }: Props) {
               setDiagnostico(e.target.value);
               setError("");
             }}
-            placeholder="Hallazgos de la revisión técnica: desgaste, fallas encontradas, pruebas realizadas"
+            placeholder="Fallas encontradas y pruebas realizadas"
           />
         </Field>
         <Field
           label="Categoría o tipo de servicio"
           htmlFor={`tipo-servicio-${orden.id}`}
           required
-          hint="El propietario no define el servicio técnico; lo determina el mecánico en el diagnóstico."
+          hint="El servicio lo define el mecánico."
         >
           <select
             id={`tipo-servicio-${orden.id}`}

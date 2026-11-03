@@ -194,8 +194,7 @@ export default function MovimientosPage() {
             <div className="mt-3 border-t border-background-800 pt-2 text-[11px] leading-relaxed text-foreground-500">
               <p className="font-medium text-foreground-300">Salidas del inventario</p>
               <p className="mt-1">
-                Las salidas se generan al registrar una venta en el punto de venta o al despachar un
-                repuesto desde la orden de servicio del taller.
+                Las salidas se generan al vender o despachar un repuesto.
               </p>
               <Link
                 to="/punto-venta"

@@ -186,8 +186,7 @@ export default function ProductoFormPage() {
                 </div>
                 {escaneando && (
                   <p className="mt-1 border border-primary-200 bg-primary-50 px-2 py-1 text-[11px] text-primary-800">
-                    Campo listo para el lector. Apunte al código de barras del producto; el valor se
-                    cargará automáticamente.
+                    Apunta el lector al código de barras.
                   </p>
                 )}
               </Field>

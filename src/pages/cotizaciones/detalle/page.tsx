@@ -424,7 +424,7 @@ export default function CotizacionDetallePage() {
                       label="Motivo del rechazo"
                       htmlFor="motivo-rechazo"
                       required
-                      hint="La orden vinculada pasa a Servicio cancelado con este motivo."
+                      hint="La orden pasa a cancelada con este motivo."
                     >
                       <textarea
                         id="motivo-rechazo"

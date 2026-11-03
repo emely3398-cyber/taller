@@ -114,8 +114,7 @@ export default function CotizacionesPage() {
             </div>
           ) : (
             <p className="text-[11px] text-foreground-500">
-              Las cotizaciones no descuentan existencias. El inventario solo se descuenta al vender o
-              despachar repuestos.
+              Las cotizaciones no descuentan inventario.
             </p>
           )}
         </div>
