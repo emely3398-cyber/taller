@@ -318,7 +318,7 @@ export default function NuevaCotizacionPage() {
 
             <Panel
               title="Materiales y repuestos"
-              hint="Los precios se pueden cambiar después."
+              hint="Los precios se pueden reajustar sin cambiar el número de cotización."
               flush
             >
               <div className="flex flex-col gap-2 border-b border-background-800 px-3 py-2.5 sm:flex-row sm:items-end">
@@ -489,7 +489,7 @@ export default function NuevaCotizacionPage() {
                   className="admin-field resize-y"
                   value={observaciones}
                   onChange={(e) => setObservaciones(e.target.value)}
-                  placeholder="Vigencia o condiciones de pago"
+                  placeholder="Vigencia, condiciones de pago o indicaciones para el cliente"
                 />
               </Field>
             </Panel>

@@ -1,5 +1,6 @@
 import { ordenesServicio } from "@/mocks/ordenes";
 import { ahoraISO } from "@/lib/format";
+import { crearPersistencia } from "@/lib/persistencia";
 import { esEstadoCerrado } from "@/lib/taller";
 import type {
   EstadoMaterialOrden,
@@ -7,7 +8,9 @@ import type {
   FotoOrden,
   MaterialOrden,
   OrdenServicio,
+  RegistroAtencion,
   RegistroSeguimiento,
+  TipoAtencion,
   TipoServicio,
 } from "@/types/admin";
 
@@ -15,8 +18,15 @@ let ordenes: OrdenServicio[] = [...ordenesServicio];
 
 const listeners = new Set<() => void>();
 
-function emitir() {
+let persistencia: { guardar: () => void } | null = null;
+
+function notificar() {
   listeners.forEach((listener) => listener());
+}
+
+function emitir() {
+  notificar();
+  persistencia?.guardar();
 }
 
 export function suscribirOrdenes(listener: () => void) {
@@ -29,6 +39,15 @@ export function suscribirOrdenes(listener: () => void) {
 export function obtenerOrdenes() {
   return ordenes;
 }
+
+persistencia = crearPersistencia<OrdenServicio[]>(
+  "ordenes",
+  () => ordenes,
+  (guardadas) => {
+    ordenes = guardadas;
+    notificar();
+  },
+);
 
 export function hoyISO() {
   return new Date().toISOString().slice(0, 10);
@@ -92,6 +111,7 @@ export function guardarDiagnosticoOrden(
   datos: {
     diagnostico: string;
     tipoServicio?: TipoServicio;
+    tipoAtencion?: TipoAtencion;
     trabajoARealizar: string;
     repuestosNecesarios: string;
   },
@@ -107,12 +127,78 @@ export function guardarDiagnosticoOrden(
       mecanico: responsable,
       fotos: [],
     };
+    const cambioAtencion =
+      Boolean(datos.tipoAtencion) && datos.tipoAtencion !== orden.tipoAtencion;
+    const registros = [...orden.seguimiento, registro];
+
+    if (cambioAtencion) {
+      registros.push({
+        fecha: ahoraISO(),
+        estadoAnterior: orden.estado,
+        estadoNuevo: orden.estado,
+        observacion: `Tipo de atención actualizado: ${orden.tipoAtencion || "Sin especificar"} → ${datos.tipoAtencion}. La orden no cambia de estado.`,
+        mecanico: responsable,
+        fotos: [],
+        cambioServicio: `Tipo de atención: ${orden.tipoAtencion || "Sin especificar"} → ${datos.tipoAtencion}`,
+      });
+    }
+
     return {
       ...orden,
       diagnostico: datos.diagnostico,
       tipoServicio: datos.tipoServicio ?? orden.tipoServicio,
+      tipoAtencion: datos.tipoAtencion ?? orden.tipoAtencion,
+      historialAtencion: cambioAtencion
+        ? [
+            ...(orden.historialAtencion ?? []),
+            {
+              fecha: ahoraISO(),
+              valorAnterior: orden.tipoAtencion,
+              valorNuevo: datos.tipoAtencion as TipoAtencion,
+              responsable,
+              motivo: "Actualizado durante el diagnóstico técnico",
+            },
+          ]
+        : orden.historialAtencion,
       trabajoARealizar: datos.trabajoARealizar,
       repuestosNecesarios: datos.repuestosNecesarios,
+      seguimiento: registros,
+    };
+  });
+  emitir();
+}
+
+export function actualizarTipoAtencion(
+  id: string,
+  nuevo: TipoAtencion,
+  responsable: string,
+  motivo?: string,
+) {
+  ordenes = ordenes.map((orden) => {
+    if (orden.id !== id) return orden;
+    if (orden.tipoAtencion === nuevo) return orden;
+
+    const cambio: RegistroAtencion = {
+      fecha: ahoraISO(),
+      valorAnterior: orden.tipoAtencion,
+      valorNuevo: nuevo,
+      responsable,
+      motivo: motivo?.trim() || "Actualización del tipo de atención",
+    };
+    const registro: RegistroSeguimiento = {
+      fecha: ahoraISO(),
+      estadoAnterior: orden.estado,
+      estadoNuevo: orden.estado,
+      observacion: `Tipo de atención actualizado: ${orden.tipoAtencion || "Sin especificar"} → ${nuevo}. ${cambio.motivo}. La orden conserva su estado, diagnóstico y cotizaciones.`,
+      mecanico: responsable,
+      fotos: [],
+      cambioServicio: `Tipo de atención: ${orden.tipoAtencion || "Sin especificar"} → ${nuevo}`,
+    };
+
+    return {
+      ...orden,
+      tipoAtencion: nuevo,
+      historialAtencion: [...(orden.historialAtencion ?? []), cambio],
       seguimiento: [...orden.seguimiento, registro],
     };
   });
@@ -199,7 +285,12 @@ export function agregarSeguimientoOrden(id: string, nota: string, mecanico: stri
 
 export function registrarRepuestoDespachado(
   id: string,
-  repuesto: { codigo: string; descripcion: string; cantidad: number },
+  repuesto: {
+    codigo: string;
+    descripcion: string;
+    cantidad: number;
+    responsable?: string;
+  },
 ) {
   ordenes = ordenes.map((orden) => {
     if (orden.id !== id) return orden;
@@ -210,21 +301,26 @@ export function registrarRepuestoDespachado(
             ? { ...item, cantidad: item.cantidad + repuesto.cantidad }
             : item,
         )
-      : [...orden.repuestosDespachados, { ...repuesto, fecha: hoyISO() }];
+      : [
+          ...orden.repuestosDespachados,
+          {
+            codigo: repuesto.codigo,
+            descripcion: repuesto.descripcion,
+            cantidad: repuesto.cantidad,
+            fecha: hoyISO(),
+            registradoPor: repuesto.responsable,
+          },
+        ];
     const registro: RegistroSeguimiento = {
       fecha: ahoraISO(),
       estadoAnterior: orden.estado,
       estadoNuevo: orden.estado,
-      observacion: `Despacho de repuesto: ${repuesto.cantidad} × ${repuesto.descripcion} (${repuesto.codigo}). Existencias descontadas del inventario.`,
-      mecanico: orden.mecanico,
+      observacion: `Despacho de repuesto: ${repuesto.cantidad} × ${repuesto.descripcion} (${repuesto.codigo}). Existencias descontadas del inventario compartido.`,
+      mecanico: repuesto.responsable || orden.mecanico,
       fotos: [],
     };
-    const materiales = (orden.materiales ?? []).map((item) =>
-      item.codigo === repuesto.codigo ? { ...item, estado: "Utilizado" as EstadoMaterialOrden } : item,
-    );
     return {
       ...orden,
-      materiales,
       repuestosDespachados,
       seguimiento: [...orden.seguimiento, registro],
     };
@@ -281,20 +377,39 @@ export function registrarMaterialOrden(
   emitir();
 }
 
-export function actualizarEstadoMaterialOrden(
+/**
+ * Registra la instalación real de un repuesto despachado. El inventario no se
+ * descuenta aquí: ya se descontó al confirmar el despacho.
+ */
+export function agregarUtilizacionOrden(
   ordenId: string,
-  materialId: string,
-  estado: EstadoMaterialOrden,
-  responsable: string,
+  datos: { materialId: string; codigo: string; nombre: string; cantidad: number; mecanico: string },
 ) {
   ordenes = ordenes.map((orden) => {
     if (orden.id !== ordenId) return orden;
-    const materiales = (orden.materiales ?? []).map((item) =>
-      item.id === materialId
-        ? { ...item, estado, fecha: ahoraISO(), registradoPor: responsable }
-        : item,
-    );
-    return { ...orden, materiales };
+    const utilizaciones = orden.utilizaciones ?? [];
+    const registro = {
+      id: `UTL-${ordenId}-${utilizaciones.length + 1}`,
+      materialId: datos.materialId,
+      codigo: datos.codigo,
+      nombre: datos.nombre,
+      cantidad: datos.cantidad,
+      fecha: ahoraISO(),
+      mecanico: datos.mecanico,
+    };
+    const seguimiento: RegistroSeguimiento = {
+      fecha: ahoraISO(),
+      estadoAnterior: orden.estado,
+      estadoNuevo: orden.estado,
+      observacion: `Repuesto utilizado: ${datos.cantidad} × ${datos.nombre} (${datos.codigo}) instalado por ${datos.mecanico}. El inventario no se descuenta nuevamente.`,
+      mecanico: datos.mecanico,
+      fotos: [],
+    };
+    return {
+      ...orden,
+      utilizaciones: [...utilizaciones, registro],
+      seguimiento: [...orden.seguimiento, seguimiento],
+    };
   });
   emitir();
 }

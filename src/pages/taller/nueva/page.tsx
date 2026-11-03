@@ -6,17 +6,18 @@ import Field from "@/components/base/Field";
 import StatusTag from "@/components/base/StatusTag";
 import { btn } from "@/components/base/buttonStyles";
 import { agregarOrden, hoyISO, registrarCambioOrden, siguienteNumeroOrden } from "@/lib/ordenesStore";
-import { SIN_ASIGNAR } from "@/lib/taller";
+import { SIN_ASIGNAR, TIPOS_ATENCION } from "@/lib/taller";
 import { useMecanicos } from "@/lib/mecanicosStore";
 import { useSesion } from "@/lib/sesionStore";
 import { formatDate } from "@/lib/format";
 import { leerArchivosComoDataUrl } from "@/lib/imagenes";
 import PhotoViewer from "@/components/base/PhotoViewer";
-import type { FotoOrden, OrdenServicio } from "@/types/admin";
+import type { FotoOrden, OrdenServicio, TipoAtencion } from "@/types/admin";
 
 type FormHoja = {
   fechaIngreso: string;
   fechaEntrega: string;
+  tipoAtencion: TipoAtencion | "";
   propietario: string;
   telefono: string;
   marca: string;
@@ -34,6 +35,7 @@ type FormHoja = {
 const inicial = (): FormHoja => ({
   fechaIngreso: hoyISO(),
   fechaEntrega: "",
+  tipoAtencion: "",
   propietario: "",
   telefono: "",
   marca: "",
@@ -100,6 +102,7 @@ export default function NuevaHojaPage() {
     const faltantes: string[] = [];
     if (!form.fechaIngreso) faltantes.push("Fecha de recepción");
     if (!form.fechaEntrega) faltantes.push("Fecha estimada de entrega");
+    if (!form.tipoAtencion) faltantes.push("Tipo de atención");
     if (!form.propietario.trim()) faltantes.push("Nombre completo del propietario");
     if (!form.telefono.trim()) faltantes.push("Número de teléfono");
     if (!form.marca.trim()) faltantes.push("Marca de la motocicleta");
@@ -119,6 +122,7 @@ export default function NuevaHojaPage() {
       id: numeroOrden,
       fechaIngreso: form.fechaIngreso,
       fechaEntrega: form.fechaEntrega,
+      tipoAtencion: form.tipoAtencion || undefined,
       propietario: form.propietario.trim(),
       telefono: form.telefono.trim(),
       marca: form.marca.trim(),
@@ -190,6 +194,10 @@ export default function NuevaHojaPage() {
             <div className="flex justify-between gap-3">
               <dt className="text-foreground-500">Mecánico asignado</dt>
               <dd className="text-foreground-200">{guardada.mecanico}</dd>
+            </div>
+            <div className="flex justify-between gap-3">
+              <dt className="text-foreground-500">Tipo de atención</dt>
+              <dd className="text-foreground-200">{guardada.tipoAtencion || "Sin especificar"}</dd>
             </div>
             <div className="flex justify-between gap-3">
               <dt className="text-foreground-500">Recepción</dt>
@@ -282,7 +290,7 @@ export default function NuevaHojaPage() {
       <form onSubmit={guardar} noValidate>
         <div className="space-y-3">
           <Panel title="A. Información de recepción">
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <Field
                 label="Número de orden"
                 htmlFor="numeroOrden"
@@ -315,6 +323,27 @@ export default function NuevaHojaPage() {
                   value={form.fechaEntrega}
                   onChange={(e) => set("fechaEntrega", e.target.value)}
                 />
+              </Field>
+              <Field
+                label="Tipo de atención"
+                htmlFor="tipoAtencion"
+                required
+                hint="Motivo general de la visita. Se puede ajustar en el diagnóstico."
+              >
+                <select
+                  id="tipoAtencion"
+                  name="tipoAtencion"
+                  className="admin-field"
+                  value={form.tipoAtencion}
+                  onChange={(e) => set("tipoAtencion", e.target.value as TipoAtencion | "")}
+                >
+                  <option value="">Seleccione el tipo de atención</option>
+                  {TIPOS_ATENCION.map((tipo) => (
+                    <option key={tipo} value={tipo}>
+                      {tipo}
+                    </option>
+                  ))}
+                </select>
               </Field>
             </div>
           </Panel>

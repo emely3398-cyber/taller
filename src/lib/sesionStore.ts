@@ -38,7 +38,7 @@ function persistir() {
     if (sesion) window.sessionStorage.setItem(CLAVE_ALMACEN, JSON.stringify(sesion));
     else window.sessionStorage.removeItem(CLAVE_ALMACEN);
   } catch {
-    return;
+    /* sesión solo en memoria si el navegador bloquea el almacenamiento */
   }
 }
 
@@ -57,24 +57,45 @@ export function useSesion() {
   return useSyncExternalStore(suscribir, obtenerSesion, obtenerSesion);
 }
 
-export function iniciarSesion(usuario: string, contrasena: string): { error?: string } {
+export function iniciarSesion(
+  usuario: string,
+  contrasena: string,
+): { error?: string } {
   const nombreUsuario = usuario.trim().toLowerCase();
 
-  if (nombreUsuario === USUARIO_ADMIN && contrasena === CLAVE_ADMIN) {
-    sesion = { tipo: "Administrador", nombre: "Administración", usuario: USUARIO_ADMIN };
-  } else {
-    const mecanico = obtenerMecanicos().find((item) => item.usuario === "clopez");
-    if (!mecanico || nombreUsuario !== mecanico.usuario || contrasena !== mecanico.contrasena) {
-      return { error: "Usuario o contraseña incorrectos." };
-    }
-    sesion = {
-      tipo: "Mecánico",
-      nombre: mecanico.nombre,
-      usuario: mecanico.usuario,
-      mecanicoCodigo: mecanico.codigo,
-    };
+  if (!nombreUsuario || !contrasena) {
+    return { error: "Ingrese el usuario y la contraseña." };
   }
 
+  if (nombreUsuario === USUARIO_ADMIN) {
+    if (contrasena !== CLAVE_ADMIN) {
+      return { error: "La contraseña del administrador no coincide." };
+    }
+    sesion = { tipo: "Administrador", nombre: "Administración", usuario: USUARIO_ADMIN };
+    persistir();
+    emitir();
+    return {};
+  }
+
+  const mecanico = obtenerMecanicos().find(
+    (item) => item.usuario.toLowerCase() === nombreUsuario,
+  );
+  if (!mecanico) {
+    return { error: "No existe un usuario registrado con ese nombre." };
+  }
+  if (!mecanico.activo) {
+    return { error: "Este mecánico está inactivo. Consulte con el administrador." };
+  }
+  if (mecanico.contrasena !== contrasena) {
+    return { error: "La contraseña del mecánico no coincide." };
+  }
+
+  sesion = {
+    tipo: "Mecánico",
+    nombre: mecanico.nombre,
+    usuario: mecanico.usuario,
+    mecanicoCodigo: mecanico.codigo,
+  };
   persistir();
   emitir();
   return {};

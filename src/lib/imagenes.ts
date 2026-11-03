@@ -6,6 +6,7 @@ export type FotoVista = {
   pie?: string;
 };
 
+/** Convierte un archivo en una URL de datos para que la fotografía persista en el prototipo. */
 export function leerComoDataUrl(archivo: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const lector = new FileReader();

@@ -9,6 +9,7 @@ import { useCotizaciones, calcularTotales, guardarCotizacion, hoyISO } from "@/l
 import { cancelarOrdenPorRechazo, registrarAprobacionCotizacion } from "@/lib/ordenesStore";
 import { useSesion } from "@/lib/sesionStore";
 import { formatDate, formatMoney } from "@/lib/format";
+import RepuestosAdicionales from "@/pages/cotizaciones/components/RepuestosAdicionales";
 import type { EstadoCotizacion } from "@/types/admin";
 
 const ESTADOS: EstadoCotizacion[] = ["Pendiente", "Enviada al cliente", "Aprobada", "Rechazada"];
@@ -80,7 +81,18 @@ export default function CotizacionDetallePage() {
       return;
     }
 
-    guardarCotizacion({ ...cotizacion, estado: estadoSeleccionado });
+    guardarCotizacion({
+      ...cotizacion,
+      estado: estadoSeleccionado,
+      importeAprobado:
+        estadoSeleccionado === "Aprobada"
+          ? (cotizacion.importeAprobado ?? totales.total)
+          : cotizacion.importeAprobado,
+      requiereNuevaConfirmacion:
+        estadoSeleccionado === "Enviada al cliente"
+          ? false
+          : cotizacion.requiereNuevaConfirmacion,
+    });
 
     if (cotizacion.tipo === "Taller" && cotizacion.referencia) {
       if (estadoSeleccionado === "Aprobada") {
@@ -190,15 +202,24 @@ export default function CotizacionDetallePage() {
         subtitle={`${cotizacion.tipo} · ${cotizacion.cliente}`}
         actions={
           <>
-            {cotizacion.tipo === "Taller" && (
+            {cotizacion.tipo === "Taller" && !esMecanico && (
               <Link to={`/taller/${cotizacion.referencia}`} className={btn("secondary")}>
                 <i className="ri-clipboard-line text-[13px] leading-none" aria-hidden="true" />
                 Ver orden {cotizacion.referencia}
               </Link>
             )}
-            <Link to="/cotizaciones" className={btn("secondary")}>
+            <Link
+              to={
+                esMecanico
+                  ? cotizacion.tipo === "Taller" && cotizacion.referencia
+                    ? `/taller/${cotizacion.referencia}`
+                    : "/taller/mis-ordenes"
+                  : "/cotizaciones"
+              }
+              className={btn("secondary")}
+            >
               <i className="ri-arrow-left-line text-[13px] leading-none" aria-hidden="true" />
-              Volver al listado
+              {esMecanico ? "Volver a la orden" : "Volver al listado"}
             </Link>
           </>
         }
@@ -340,6 +361,14 @@ export default function CotizacionDetallePage() {
                   </div>
                 </>
               )}
+              {cotizacion.estado === "Aprobada" && cotizacion.importeAprobado !== undefined && (
+                <div className="flex items-center justify-between gap-3 px-3 py-2">
+                  <dt className="text-foreground-500">Importe originalmente aprobado</dt>
+                  <dd className="font-mono text-foreground-50">
+                    {formatMoney(cotizacion.importeAprobado)}
+                  </dd>
+                </div>
+              )}
               <div className="flex items-center justify-between gap-3 bg-background-100 px-3 py-2.5">
                 <dt className="text-[13px] font-medium text-foreground-100">Total estimado</dt>
                 <dd className="font-mono text-[15px] text-foreground-50">{formatMoney(totales.total)}</dd>
@@ -352,6 +381,15 @@ export default function CotizacionDetallePage() {
               </p>
             )}
           </Panel>
+
+          {cotizacion.tipo === "Taller" && (
+            <Panel
+              title="Repuestos adicionales de la orden"
+              hint="Agregados después de crear la cotización. No descuentan inventario."
+            >
+              <RepuestosAdicionales cotizacion={cotizacion} puedeEditar={!esMecanico} />
+            </Panel>
+          )}
         </div>
 
         <div className="space-y-3">
@@ -386,7 +424,7 @@ export default function CotizacionDetallePage() {
                       label="Motivo del rechazo"
                       htmlFor="motivo-rechazo"
                       required
-                      hint="La orden pasa a cancelada con este motivo."
+                      hint="La orden vinculada pasa a Servicio cancelado con este motivo."
                     >
                       <textarea
                         id="motivo-rechazo"

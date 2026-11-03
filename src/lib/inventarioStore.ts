@@ -1,14 +1,24 @@
 import { useSyncExternalStore } from "react";
 import { productos as productosExport } from "@/mocks/productos";
 import { movimientosIniciales } from "@/mocks/movimientos";
+import { crearPersistencia } from "@/lib/persistencia";
 import type { MovimientoInventario, Producto } from "@/types/admin";
 
 let listaProductos: Producto[] = [...productosExport];
 let listaMovimientos: MovimientoInventario[] = [...movimientosIniciales];
 const listeners = new Set<() => void>();
 
-function emitir() {
+let persistenciaProductos: { guardar: () => void } | null = null;
+let persistenciaMovimientos: { guardar: () => void } | null = null;
+
+function notificar() {
   listeners.forEach((listener) => listener());
+}
+
+function emitir() {
+  notificar();
+  persistenciaProductos?.guardar();
+  persistenciaMovimientos?.guardar();
 }
 
 function suscribir(listener: () => void) {
@@ -25,6 +35,24 @@ export function obtenerProductos() {
 export function obtenerMovimientos() {
   return listaMovimientos;
 }
+
+persistenciaProductos = crearPersistencia<Producto[]>(
+  "inventario-productos",
+  () => listaProductos,
+  (guardados) => {
+    listaProductos = guardados;
+    notificar();
+  },
+);
+
+persistenciaMovimientos = crearPersistencia<MovimientoInventario[]>(
+  "inventario-movimientos",
+  () => listaMovimientos,
+  (guardados) => {
+    listaMovimientos = guardados;
+    notificar();
+  },
+);
 
 export function useProductos() {
   return useSyncExternalStore(suscribir, obtenerProductos, obtenerProductos);

@@ -2,11 +2,24 @@ import { useMemo, useState, type FormEvent } from "react";
 import { btn } from "@/components/base/buttonStyles";
 import Field from "@/components/base/Field";
 import { useProductos } from "@/lib/inventarioStore";
-import { registrarMaterialOrden } from "@/lib/ordenesStore";
+import { registrarRepuestoPendiente, useCotizaciones } from "@/lib/cotizacionesStore";
+import { quitarMaterialOrden, registrarMaterialOrden } from "@/lib/ordenesStore";
+import { registrarUtilizacionRepuesto } from "@/lib/repuestosStore";
+import { calcularSituacionMaterial, type EtapaRepuesto } from "@/lib/repuestosFlujo";
 import { useSesion } from "@/lib/sesionStore";
+import { formatDate, formatDateTime } from "@/lib/format";
 import type { EstadoMaterialOrden, OrdenServicio } from "@/types/admin";
 
 const ESTADOS_SOLICITUD: EstadoMaterialOrden[] = ["Requerido", "Pendiente"];
+
+const ESTILO_ETAPA: Record<EtapaRepuesto, string> = {
+  Requerido: "border-background-700 bg-background-100 text-foreground-300",
+  "Pendiente de incorporación": "border-accent-300 bg-accent-50 text-accent-800",
+  "Pendiente de autorización": "border-accent-300 bg-accent-50 text-accent-800",
+  Autorizado: "border-primary-200 bg-primary-50 text-primary-700",
+  Despachado: "border-primary-300 bg-primary-50 text-primary-800",
+  Utilizado: "border-background-700 bg-background-200 text-foreground-100",
+};
 
 type Props = {
   orden: OrdenServicio;
@@ -14,8 +27,10 @@ type Props = {
 
 export default function MaterialesOrden({ orden }: Props) {
   const productos = useProductos();
+  const cotizaciones = useCotizaciones();
   const sesion = useSesion();
   const esMecanico = sesion?.tipo === "Mecánico";
+  const responsable = sesion?.nombre || orden.mecanico;
 
   const [busqueda, setBusqueda] = useState("");
   const [codigo, setCodigo] = useState("");
@@ -25,6 +40,10 @@ export default function MaterialesOrden({ orden }: Props) {
   const [error, setError] = useState("");
   const [aviso, setAviso] = useState("");
   const [avisoEscanner, setAvisoEscanner] = useState(false);
+  const [materialAQuitar, setMaterialAQuitar] = useState<string | null>(null);
+  const [cantidadesUso, setCantidadesUso] = useState<Record<string, string>>({});
+  const [errorUso, setErrorUso] = useState("");
+  const [avisoUso, setAvisoUso] = useState("");
 
   const producto = productos.find((item) => item.codigo === codigo);
 
@@ -82,17 +101,63 @@ export default function MaterialesOrden({ orden }: Props) {
       nombre: producto.nombre,
       cantidad: numero,
       estado,
-      registradoPor: sesion?.nombre || orden.mecanico,
+      registradoPor: responsable,
       observacion: observacion.trim() || undefined,
     });
+
+    const vinculacion = registrarRepuestoPendiente(orden.id, {
+      codigo: producto.codigo,
+      descripcion: producto.nombre,
+      cantidad: numero,
+      precioUnitario: producto.precioMenor,
+      registradoPor: responsable,
+      observacion: observacion.trim() || undefined,
+    });
+    const notaCotizacion =
+      vinculacion === "incorporar"
+        ? " La cotización vinculada ya lo muestra como «Pendiente de incorporar»."
+        : vinculacion === "autorizacion"
+          ? " La cotización aprobada lo muestra como adicional pendiente de autorización del cliente."
+          : vinculacion === "rechazada"
+            ? " La cotización vinculada está rechazada, por lo que no se modifica."
+            : "";
+
     setError("");
     setAviso(
-      `${numero} × ${producto.nombre} registrado como ${estado.toLowerCase()}. El inventario no se descuenta hasta confirmar el despacho.`,
+      `${numero} × ${producto.nombre} registrado como ${estado.toLowerCase()}. El inventario no se descuenta hasta confirmar el despacho.${notaCotizacion}`,
     );
     setCantidad("1");
     setObservacion("");
     setCodigo("");
     setBusqueda("");
+  };
+
+  const marcarUtilizado = (materialId: string) => {
+    const material = (orden.materiales ?? []).find((item) => item.id === materialId);
+    if (!material) return;
+    const situacion = calcularSituacionMaterial(orden, material, cotizaciones);
+    const valor = cantidadesUso[materialId] ?? String(situacion.maxUtilizable);
+    const numero = Number(valor);
+
+    const resultado = registrarUtilizacionRepuesto(
+      orden.id,
+      materialId,
+      numero,
+      responsable,
+      cotizaciones,
+    );
+    if (resultado.ok) {
+      setAvisoUso(resultado.mensaje);
+      setErrorUso("");
+      setCantidadesUso((prev) => {
+        const copia = { ...prev };
+        delete copia[materialId];
+        return copia;
+      });
+    } else {
+      setErrorUso(resultado.mensaje);
+      setAvisoUso("");
+    }
   };
 
   return (
@@ -267,6 +332,211 @@ export default function MaterialesOrden({ orden }: Props) {
           </p>
         )}
       </form>
+
+      <div className="border-t border-background-800">
+        <p className="px-3 pt-2.5 text-[11px] uppercase tracking-[0.04em] text-foreground-500">
+          Repuestos y materiales de esta orden
+        </p>
+        <div className="w-full overflow-x-auto">
+          <table className="admin-table min-w-[940px]">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Descripción</th>
+                <th className="text-right">Solicitada</th>
+                <th className="text-right">Autorizada</th>
+                <th className="text-right">Despachada</th>
+                <th className="text-right">Pendiente</th>
+                <th className="text-right">Utilizada</th>
+                <th>Situación</th>
+                <th className="text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(orden.materiales ?? []).length === 0 && (
+                <tr>
+                  <td colSpan={9} className="py-4 text-center text-foreground-500">
+                    Aún no hay repuestos ni materiales registrados en esta orden.
+                  </td>
+                </tr>
+              )}
+              {(orden.materiales ?? []).map((material) => {
+                const situacion = calcularSituacionMaterial(orden, material, cotizaciones);
+                const valorUso =
+                  cantidadesUso[material.id] ?? String(situacion.maxUtilizable || 1);
+                return (
+                  <tr key={material.id}>
+                    <td className="whitespace-nowrap font-mono text-[12px] text-foreground-50">
+                      {material.codigo}
+                    </td>
+                    <td>
+                      <span className="block text-foreground-100">{material.nombre}</span>
+                      {material.observacion && (
+                        <span className="block text-[11px] text-foreground-500">
+                          {material.observacion}
+                        </span>
+                      )}
+                      <span className="block text-[10px] text-foreground-500">
+                        {material.registradoPor} · {formatDate(material.fecha)}
+                      </span>
+                    </td>
+                    <td className="text-right font-mono">{situacion.solicitada}</td>
+                    <td className="text-right font-mono text-foreground-200">
+                      {situacion.autorizada}
+                    </td>
+                    <td className="text-right font-mono text-foreground-200">
+                      {situacion.despachada}
+                    </td>
+                    <td className="text-right font-mono text-foreground-200">
+                      {situacion.pendienteDespacho}
+                    </td>
+                    <td className="text-right font-mono text-foreground-200">
+                      {situacion.utilizada}
+                    </td>
+                    <td>
+                      <span
+                        className={`inline-block whitespace-nowrap border px-1.5 py-0.5 text-[10px] ${ESTILO_ETAPA[situacion.etapa]}`}
+                      >
+                        {situacion.etapa}
+                      </span>
+                      {!situacion.puedeUtilizar && situacion.motivoBloqueo && (
+                        <span className="mt-0.5 block text-[10px] leading-tight text-foreground-500">
+                          {situacion.motivoBloqueo}
+                        </span>
+                      )}
+                    </td>
+                    <td className="text-right">
+                      <div className="flex flex-wrap items-center justify-end gap-1">
+                        {situacion.puedeUtilizar ? (
+                          <>
+                            <input
+                              aria-label={`Cantidad utilizada de ${material.nombre}`}
+                              className="admin-field w-[54px] px-1 py-0.5 text-right font-mono text-[11px]"
+                              value={valorUso}
+                              inputMode="numeric"
+                              onChange={(e) =>
+                                setCantidadesUso((prev) => ({
+                                  ...prev,
+                                  [material.id]: e.target.value,
+                                }))
+                              }
+                            />
+                            <button
+                              type="button"
+                              onClick={() => marcarUtilizado(material.id)}
+                              title={`Máximo ${situacion.maxUtilizable} unidad(es) despachadas`}
+                              className="inline-flex cursor-pointer items-center gap-1 whitespace-nowrap border border-background-800 px-2 py-1 text-[10px] text-foreground-200 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700"
+                            >
+                              <i
+                                className="ri-check-line text-[11px] leading-none"
+                                aria-hidden="true"
+                              />
+                              Marcar utilizado
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            type="button"
+                            disabled
+                            title={situacion.motivoBloqueo}
+                            className="inline-flex cursor-not-allowed items-center gap-1 whitespace-nowrap border border-background-800 px-2 py-1 text-[10px] text-foreground-500 opacity-60"
+                          >
+                            <i
+                              className="ri-lock-line text-[11px] leading-none"
+                              aria-hidden="true"
+                            />
+                            Marcar utilizado
+                          </button>
+                        )}
+                        {!esMecanico &&
+                          (materialAQuitar === material.id ? (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  quitarMaterialOrden(orden.id, material.id);
+                                  setMaterialAQuitar(null);
+                                  setAviso("Material retirado de la lista de la orden.");
+                                }}
+                                className="cursor-pointer whitespace-nowrap border border-accent-300 bg-accent-50 px-2 py-1 text-[10px] text-accent-800 hover:bg-accent-100"
+                              >
+                                Confirmar
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setMaterialAQuitar(null)}
+                                className="cursor-pointer whitespace-nowrap border border-background-800 px-2 py-1 text-[10px] text-foreground-400 hover:bg-background-200"
+                              >
+                                Cancelar
+                              </button>
+                            </>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => setMaterialAQuitar(material.id)}
+                              title="Quitar de la lista"
+                              className="flex h-6 w-6 cursor-pointer items-center justify-center border border-background-800 text-foreground-400 hover:bg-background-200 hover:text-accent-700"
+                            >
+                              <i
+                                className="ri-delete-bin-line text-[12px] leading-none"
+                                aria-hidden="true"
+                              />
+                            </button>
+                          ))}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {errorUso && (
+          <p className="mx-3 mt-2 border border-accent-300 bg-accent-50 px-2 py-1.5 text-[11px] text-accent-800">
+            {errorUso}
+          </p>
+        )}
+        {avisoUso && (
+          <p className="mx-3 mt-2 border border-primary-200 bg-primary-50 px-2 py-1.5 text-[11px] text-primary-800">
+            {avisoUso}
+          </p>
+        )}
+
+        <p className="px-3 py-2 text-[11px] leading-relaxed text-foreground-500">
+          El orden es: solicitado → incorporado a la cotización → autorizado por el cliente →
+          despachado por administración → utilizado por el mecánico. Registrar o despachar un
+          repuesto no lo marca como utilizado, y marcar «utilizado» no descuenta inventario otra vez.
+        </p>
+
+        {(orden.utilizaciones ?? []).length > 0 && (
+          <div className="border-t border-background-800 px-3 py-2">
+            <p className="text-[11px] uppercase tracking-[0.04em] text-foreground-500">
+              Registro de utilizaciones ({orden.utilizaciones?.length})
+            </p>
+            <ul className="mt-1 max-h-44 divide-y divide-background-700 overflow-y-auto border border-background-800">
+              {(orden.utilizaciones ?? []).map((utilizacion) => (
+                <li
+                  key={utilizacion.id}
+                  className="flex flex-wrap items-center justify-between gap-2 px-2 py-1.5"
+                >
+                  <span className="min-w-0">
+                    <span className="block truncate text-[11px] text-foreground-100">
+                      {utilizacion.cantidad} × {utilizacion.nombre}
+                    </span>
+                    <span className="block font-mono text-[10px] text-foreground-500">
+                      {utilizacion.codigo} · {utilizacion.mecanico}
+                    </span>
+                  </span>
+                  <span className="shrink-0 font-mono text-[10px] text-foreground-500">
+                    {formatDateTime(utilizacion.fecha)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

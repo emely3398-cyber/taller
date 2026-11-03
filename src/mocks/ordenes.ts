@@ -17,11 +17,11 @@ export const ordenesServicio: OrdenServicio[] = [
     fotos: [
       {
         nombre: "ingreso-lateral.jpg",
-        url: "https://commons.wikimedia.org/wiki/Special:FilePath/Motocycle_in_black.jpg?width=800",
+        url: "https://readdy.ai/api/search-image?query=used%20black%20Suzuki%20GN125%20commuter%20motorcycle%20parked%20inside%20a%20plain%20workshop%20with%20concrete%20floor%20and%20light%20gray%20walls%2C%20side%20view%2C%20documentary%20inspection%20photo%2C%20even%20lighting&width=640&height=480&seq=os0005-ingreso-a&orientation=landscape",
       },
       {
         nombre: "ingreso-motor.jpg",
-        url: "https://commons.wikimedia.org/wiki/Special:FilePath/Honda_VTX_1800_C_2007_-_engine_side_view.jpg?width=800",
+        url: "https://readdy.ai/api/search-image?query=close%20up%20of%20a%20small%20single%20cylinder%20motorcycle%20engine%20block%20with%20oil%20residue%20on%20a%20workbench%20in%20a%20repair%20shop%2C%20plain%20light%20gray%20background%2C%20technical%20inspection%20photograph%2C%20soft%20diffused%20light&width=640&height=480&seq=os0005-motor-b&orientation=landscape",
       },
     ],
     falla: "Ruido fuerte en el motor y humo blanco al acelerar; pérdida de potencia en subida.",
@@ -47,7 +47,7 @@ export const ordenesServicio: OrdenServicio[] = [
         fotos: [
           {
             nombre: "ingreso-lateral.jpg",
-            url: "https://commons.wikimedia.org/wiki/Special:FilePath/Motocycle_in_black.jpg?width=800",
+            url: "https://readdy.ai/api/search-image?query=used%20black%20Suzuki%20GN125%20commuter%20motorcycle%20parked%20inside%20a%20plain%20workshop%20with%20concrete%20floor%20and%20light%20gray%20walls%2C%20side%20view%2C%20documentary%20inspection%20photo%2C%20even%20lighting&width=640&height=480&seq=os0005-ingreso-a&orientation=landscape",
           },
         ],
       },
@@ -69,7 +69,7 @@ export const ordenesServicio: OrdenServicio[] = [
         fotos: [
           {
             nombre: "avance-cilindro.jpg",
-            url: "https://commons.wikimedia.org/wiki/Special:FilePath/Harley-Davidson,_Motorcycle_engine,_Popovka,_Crimea.jpg?width=800",
+            url: "https://readdy.ai/api/search-image?query=motorcycle%20engine%20with%20cylinder%20head%20removed%20on%20a%20workbench%20in%20a%20repair%20shop%20showing%20piston%20and%20cylinder%20walls%2C%20hand%20tools%20around%2C%20plain%20light%20gray%20background%2C%20technical%20progress%20photo&width=640&height=480&seq=os0005-avance-c&orientation=landscape",
           },
         ],
       },
@@ -90,7 +90,7 @@ export const ordenesServicio: OrdenServicio[] = [
     fotos: [
       {
         nombre: "ingreso-frontal.jpg",
-        url: "https://commons.wikimedia.org/wiki/Special:FilePath/Motocycle_in_black.jpg?width=800",
+        url: "https://readdy.ai/api/search-image?query=blue%20and%20black%20Suzuki%20Gixxer%20150%20sport%20commuter%20motorcycle%20parked%20inside%20a%20clean%20repair%20workshop%20with%20light%20gray%20walls%2C%20front%20three%20quarter%20view%2C%20documentary%20photo%2C%20even%20light&width=640&height=480&seq=os0004-ingreso-a&orientation=landscape",
       },
     ],
     falla: "Cadena de transmisión floja y ruido al cambiar de marcha.",

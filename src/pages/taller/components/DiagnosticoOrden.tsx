@@ -2,9 +2,9 @@ import { useState, type FormEvent } from "react";
 import { btn } from "@/components/base/buttonStyles";
 import Field from "@/components/base/Field";
 import { guardarDiagnosticoOrden } from "@/lib/ordenesStore";
-import { esEstadoCerrado, TIPOS_SERVICIO } from "@/lib/taller";
+import { esEstadoCerrado, TIPOS_ATENCION, TIPOS_SERVICIO } from "@/lib/taller";
 import { useSesion } from "@/lib/sesionStore";
-import type { OrdenServicio, TipoServicio } from "@/types/admin";
+import type { OrdenServicio, TipoAtencion, TipoServicio } from "@/types/admin";
 
 type Props = {
   orden: OrdenServicio;
@@ -16,6 +16,7 @@ export default function DiagnosticoOrden({ orden }: Props) {
   const [editando, setEditando] = useState(enEtapa);
   const [diagnostico, setDiagnostico] = useState(orden.diagnostico);
   const [tipoServicio, setTipoServicio] = useState<TipoServicio | "">(orden.tipoServicio || "");
+  const [tipoAtencion, setTipoAtencion] = useState<TipoAtencion | "">(orden.tipoAtencion || "");
   const [trabajoRecomendado, setTrabajoRecomendado] = useState(orden.trabajoARealizar);
   const [repuestosNecesarios, setRepuestosNecesarios] = useState(orden.repuestosNecesarios || "");
   const [error, setError] = useState("");
@@ -38,6 +39,7 @@ export default function DiagnosticoOrden({ orden }: Props) {
       {
         diagnostico: diagnostico.trim(),
         tipoServicio: tipoServicio as TipoServicio,
+        tipoAtencion: tipoAtencion || undefined,
         trabajoARealizar: trabajoRecomendado.trim(),
         repuestosNecesarios: repuestosNecesarios.trim(),
       },
@@ -63,6 +65,10 @@ export default function DiagnosticoOrden({ orden }: Props) {
             <dd className="mt-0.5 text-foreground-200">{orden.tipoServicio || "Por definir."}</dd>
           </div>
           <div>
+            <dt className="text-foreground-500">Tipo de atención</dt>
+            <dd className="mt-0.5 text-foreground-200">{orden.tipoAtencion || "Sin especificar"}</dd>
+          </div>
+          <div>
             <dt className="text-foreground-500">Trabajo recomendado</dt>
             <dd className="mt-0.5 text-foreground-200">
               {orden.trabajoARealizar || "Por definir."}
@@ -82,6 +88,7 @@ export default function DiagnosticoOrden({ orden }: Props) {
             onClick={() => {
               setDiagnostico(orden.diagnostico);
               setTipoServicio(orden.tipoServicio || "");
+              setTipoAtencion(orden.tipoAtencion || "");
               setTrabajoRecomendado(orden.trabajoARealizar);
               setRepuestosNecesarios(orden.repuestosNecesarios || "");
               setAviso("");
@@ -119,14 +126,14 @@ export default function DiagnosticoOrden({ orden }: Props) {
               setDiagnostico(e.target.value);
               setError("");
             }}
-            placeholder="Fallas encontradas y pruebas realizadas"
+            placeholder="Hallazgos de la revisión técnica: desgaste, fallas encontradas, pruebas realizadas"
           />
         </Field>
         <Field
           label="Categoría o tipo de servicio"
           htmlFor={`tipo-servicio-${orden.id}`}
           required
-          hint="El servicio lo define el mecánico."
+          hint="El propietario no define el servicio técnico; lo determina el mecánico en el diagnóstico."
         >
           <select
             id={`tipo-servicio-${orden.id}`}
@@ -166,6 +173,25 @@ export default function DiagnosticoOrden({ orden }: Props) {
             onChange={(e) => setRepuestosNecesarios(e.target.value)}
             placeholder="Ej. Kit de cilindro REP-6002, empaque de culata REP-6001"
           />
+        </Field>
+        <Field
+          label="Tipo de atención"
+          htmlFor={`tipo-atencion-${orden.id}`}
+          hint="Se carga el valor registrado en la recepción. Puede mantenerlo o cambiarlo."
+        >
+          <select
+            id={`tipo-atencion-${orden.id}`}
+            className="admin-field"
+            value={tipoAtencion}
+            onChange={(e) => setTipoAtencion(e.target.value as TipoAtencion | "")}
+          >
+            <option value="">Sin especificar</option>
+            {TIPOS_ATENCION.map((tipo) => (
+              <option key={tipo} value={tipo}>
+                {tipo}
+              </option>
+            ))}
+          </select>
         </Field>
       </div>
 

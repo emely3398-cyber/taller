@@ -8,6 +8,8 @@ function rutaPermitidaMecanico(pathname: string, codigo: string) {
   if (pathname === "/taller/nueva") return true;
   if (pathname === `/taller/mecanicos/${codigo}`) return true;
   if (pathname.startsWith("/taller/OS-")) return true;
+  // Consulta de la cotización vinculada desde la hoja de servicio (solo lectura).
+  if (pathname.startsWith("/cotizaciones/") && pathname !== "/cotizaciones/nueva") return true;
   return false;
 }
 

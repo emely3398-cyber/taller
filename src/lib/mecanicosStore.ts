@@ -1,12 +1,20 @@
 import { useSyncExternalStore } from "react";
 import { mecanicos as mecanicosDemo } from "@/mocks/mecanicos";
+import { crearPersistencia } from "@/lib/persistencia";
 import type { Mecanico } from "@/types/admin";
 
 let lista: Mecanico[] = [...mecanicosDemo];
 const listeners = new Set<() => void>();
 
-function emitir() {
+let persistencia: { guardar: () => void } | null = null;
+
+function notificar() {
   listeners.forEach((listener) => listener());
+}
+
+function emitir() {
+  notificar();
+  persistencia?.guardar();
 }
 
 function suscribir(listener: () => void) {
@@ -19,6 +27,15 @@ function suscribir(listener: () => void) {
 export function obtenerMecanicos() {
   return lista;
 }
+
+persistencia = crearPersistencia<Mecanico[]>(
+  "mecanicos",
+  () => lista,
+  (guardados) => {
+    lista = guardados;
+    notificar();
+  },
+);
 
 export function useMecanicos() {
   return useSyncExternalStore(suscribir, obtenerMecanicos, obtenerMecanicos);

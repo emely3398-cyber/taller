@@ -1,5 +1,9 @@
 import type { LineaCotizacion, MaterialOrden, OrdenServicio, Producto } from "@/types/admin";
 
+/**
+ * Materiales que el mecánico registró en la orden como necesarios.
+ * Solo se importan los solicitados (Requerido / Pendiente), no los ya utilizados.
+ */
 export function materialesSolicitados(orden: OrdenServicio | undefined): MaterialOrden[] {
   if (!orden) return [];
   return (orden.materiales ?? []).filter(
@@ -7,6 +11,11 @@ export function materialesSolicitados(orden: OrdenServicio | undefined): Materia
   );
 }
 
+/**
+ * Construye las líneas de la cotización a partir de los materiales solicitados en la orden.
+ * Agrupa por código de inventario para no duplicar el mismo repuesto y toma el precio
+ * del inventario compartido (precio por menor).
+ */
 export function lineasDesdeOrden(
   orden: OrdenServicio | undefined,
   productos: Producto[],

@@ -1,12 +1,20 @@
 import { useSyncExternalStore } from "react";
 import { proveedores as proveedoresMock } from "@/mocks/proveedores";
+import { crearPersistencia } from "@/lib/persistencia";
 import type { Proveedor } from "@/types/admin";
 
 let listaProveedores: Proveedor[] = [...proveedoresMock];
 const listeners = new Set<() => void>();
 
-function emitir() {
+let persistencia: { guardar: () => void } | null = null;
+
+function notificar() {
   listeners.forEach((listener) => listener());
+}
+
+function emitir() {
+  notificar();
+  persistencia?.guardar();
 }
 
 function suscribir(listener: () => void) {
@@ -19,6 +27,15 @@ function suscribir(listener: () => void) {
 export function obtenerProveedores() {
   return listaProveedores;
 }
+
+persistencia = crearPersistencia<Proveedor[]>(
+  "proveedores",
+  () => listaProveedores,
+  (guardados) => {
+    listaProveedores = guardados;
+    notificar();
+  },
+);
 
 export function useProveedores() {
   return useSyncExternalStore(suscribir, obtenerProveedores, obtenerProveedores);

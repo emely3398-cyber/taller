@@ -122,6 +122,7 @@ export default function SeguimientoReparacion({ orden }: Props) {
           </button>
         </div>
 
+        {/* Escritorio: barra horizontal de etapas */}
         <ol className="mt-3 hidden lg:flex lg:flex-wrap lg:items-stretch">
           {etapasVisibles.map((etapa, index) => {
             const situacion = situacionDe(etapa.estado, registrados, orden.estado);
@@ -158,6 +159,7 @@ export default function SeguimientoReparacion({ orden }: Props) {
           })}
         </ol>
 
+        {/* Móvil y tablet: registros compactos, sin desplazamiento horizontal */}
         <ol className="mt-3 grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:hidden">
           {etapasVisibles.map((etapa) => {
             const situacion = situacionDe(etapa.estado, registrados, orden.estado);

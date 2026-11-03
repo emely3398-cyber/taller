@@ -1,13 +1,21 @@
 import { useSyncExternalStore } from "react";
 import { ventasRecientes } from "@/mocks/ventas";
 import { obtenerProducto, registrarSalida } from "@/lib/inventarioStore";
+import { crearPersistencia } from "@/lib/persistencia";
 import type { Venta, VentaLinea } from "@/types/admin";
 
 let listaVentas: Venta[] = [...ventasRecientes];
 const listeners = new Set<() => void>();
 
-function emitir() {
+let persistencia: { guardar: () => void } | null = null;
+
+function notificar() {
   listeners.forEach((listener) => listener());
+}
+
+function emitir() {
+  notificar();
+  persistencia?.guardar();
 }
 
 function suscribir(listener: () => void) {
@@ -20,6 +28,15 @@ function suscribir(listener: () => void) {
 export function obtenerVentas() {
   return listaVentas;
 }
+
+persistencia = crearPersistencia<Venta[]>(
+  "ventas",
+  () => listaVentas,
+  (guardadas) => {
+    listaVentas = guardadas;
+    notificar();
+  },
+);
 
 export function useVentas() {
   return useSyncExternalStore(suscribir, obtenerVentas, obtenerVentas);

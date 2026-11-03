@@ -16,6 +16,7 @@ import DespachoRepuesto from "@/pages/taller/components/DespachoRepuesto";
 import DiagnosticoOrden from "@/pages/taller/components/DiagnosticoOrden";
 import MaterialesOrden from "@/pages/taller/components/MaterialesOrden";
 import SeguimientoReparacion from "@/pages/taller/components/SeguimientoReparacion";
+import TipoAtencionControl from "@/pages/taller/components/TipoAtencionControl";
 import Trazabilidad from "@/pages/taller/components/Trazabilidad";
 
 export default function OrdenDetallePage() {
@@ -143,6 +144,10 @@ export default function OrdenDetallePage() {
               <p className="text-foreground-50">{orden.tipoServicio || "Por definir en el diagnóstico"}</p>
             </div>
             <div>
+              <p className="text-foreground-500">Tipo de atención</p>
+              <p className="text-foreground-50">{orden.tipoAtencion || "Sin especificar"}</p>
+            </div>
+            <div>
               <p className="text-foreground-500">Mecánico asignado</p>
               <p className="text-foreground-50">{orden.mecanico}</p>
             </div>
@@ -174,6 +179,8 @@ export default function OrdenDetallePage() {
               )}
             </div>
           )}
+
+          {!esMecanico && <TipoAtencionControl orden={orden} />}
         </Panel>
 
         <Panel title="Seguimiento de la reparación">
@@ -315,6 +322,21 @@ export default function OrdenDetallePage() {
                             Ver cotización
                           </Link>
                         </div>
+                        {(() => {
+                          const pendientes = (cotizacion.pendientes ?? []).filter(
+                            (item) => item.estado !== "Incorporado" && item.estado !== "Autorizado",
+                          );
+                          if (pendientes.length === 0) return null;
+                          return (
+                            <p className="mt-1.5 border border-accent-300 bg-accent-50 px-2 py-1 text-[11px] text-accent-800">
+                              {pendientes.length}{" "}
+                              {pendientes.length === 1
+                                ? "repuesto adicional pendiente"
+                                : "repuestos adicionales pendientes"}{" "}
+                              de incorporación o autorización en la cotización.
+                            </p>
+                          );
+                        })()}
                       </li>
                     );
                   })}
@@ -334,13 +356,14 @@ export default function OrdenDetallePage() {
                       <th>Código</th>
                       <th>Descripción</th>
                       <th>Fecha</th>
+                      <th>Despachado por</th>
                       <th className="text-right">Cantidad</th>
                     </tr>
                   </thead>
                   <tbody>
                     {orden.repuestosDespachados.length === 0 && (
                       <tr>
-                        <td colSpan={4} className="py-4 text-center text-foreground-500">
+                        <td colSpan={5} className="py-4 text-center text-foreground-500">
                           Aún no se despacharon repuestos para esta orden.
                         </td>
                       </tr>
@@ -352,12 +375,18 @@ export default function OrdenDetallePage() {
                         <td className="whitespace-nowrap font-mono text-[12px]">
                           {formatDate(repuesto.fecha)}
                         </td>
+                        <td className="whitespace-nowrap">{repuesto.registradoPor || "—"}</td>
                         <td className="text-right font-mono">{repuesto.cantidad}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
+              <p className="border-t border-background-800 px-3 py-2 text-[11px] text-foreground-500">
+                El despacho descuenta existencias una sola vez. El repuesto no se marca como
+                utilizado automáticamente: eso se registra en «Repuestos y materiales» cuando se
+                instala.
+              </p>
               {!esMecanico && <DespachoRepuesto orden={orden} />}
             </Panel>
           </div>

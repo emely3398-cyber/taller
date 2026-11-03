@@ -96,7 +96,7 @@ export default function InventarioPage() {
                 type="search"
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
-                placeholder="Código, producto o moto"
+                placeholder="Código, código de barras, producto o motocicleta compatible"
                 className="admin-field"
               />
             </div>

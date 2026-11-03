@@ -1,4 +1,4 @@
-import type { EstadoOrden, TipoServicio } from "@/types/admin";
+import type { EstadoOrden, TipoAtencion, TipoServicio } from "@/types/admin";
 
 export const ESTADOS_ORDEN: EstadoOrden[] = [
   "Recibida",
@@ -27,5 +27,10 @@ export const TIPOS_SERVICIO: TipoServicio[] = [
   "Diagnóstico general",
   "Otro",
 ];
+
+/** Motivo general de la visita: se registra en la recepción y se puede actualizar. */
+export const TIPOS_ATENCION: TipoAtencion[] = ["Mantenimiento", "Revisión", "Reparación"];
+
+export const SIN_ESPECIFICAR = "Sin especificar";
 
 export const SIN_ASIGNAR = "Sin asignar";

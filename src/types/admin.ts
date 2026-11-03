@@ -27,6 +27,17 @@ export type TipoServicio =
   | "Diagnóstico general"
   | "Otro";
 
+/** Motivo general por el que el cliente deja la motocicleta en el taller. */
+export type TipoAtencion = "Mantenimiento" | "Revisión" | "Reparación";
+
+export type RegistroAtencion = {
+  fecha: string;
+  valorAnterior?: TipoAtencion;
+  valorNuevo: TipoAtencion;
+  responsable: string;
+  motivo?: string;
+};
+
 export type FotoOrden = {
   nombre: string;
   url: string;
@@ -61,6 +72,18 @@ export type RepuestoDespachado = {
   descripcion: string;
   cantidad: number;
   fecha: string;
+  registradoPor?: string;
+};
+
+/** Registro de instalación real (utilización) de un repuesto ya despachado. */
+export type UtilizacionRepuesto = {
+  id: string;
+  materialId: string;
+  codigo: string;
+  nombre: string;
+  cantidad: number;
+  fecha: string;
+  mecanico: string;
 };
 
 export type OrdenServicio = {
@@ -81,6 +104,8 @@ export type OrdenServicio = {
   observacionesIniciales: string;
   diagnostico: string;
   tipoServicio?: TipoServicio;
+  tipoAtencion?: TipoAtencion;
+  historialAtencion?: RegistroAtencion[];
   trabajoARealizar: string;
   trabajoRealizado: string;
   mecanico: string;
@@ -88,6 +113,7 @@ export type OrdenServicio = {
   motivoCancelacion?: string;
   repuestoFaltante?: string;
   repuestosDespachados: RepuestoDespachado[];
+  utilizaciones?: UtilizacionRepuesto[];
   materiales?: MaterialOrden[];
   repuestosNecesarios?: string;
   seguimiento: RegistroSeguimiento[];
@@ -113,6 +139,44 @@ export type ReajusteCotizacion = {
   motivo: string;
 };
 
+export type EstadoPendienteCotizacion =
+  | "Pendiente de incorporar"
+  | "Incorporado"
+  | "Pendiente de autorización"
+  | "Autorizado";
+
+/** Repuesto agregado a la orden después de crear la cotización vinculada. */
+export type PendienteCotizacion = {
+  id: string;
+  materialId?: string;
+  codigo: string;
+  descripcion: string;
+  cantidad: number;
+  precioUnitario: number;
+  estado: EstadoPendienteCotizacion;
+  fecha: string;
+  registradoPor: string;
+  observacion?: string;
+  fechaResolucion?: string;
+  resueltoPor?: string;
+  ampliacionId?: string;
+};
+
+/** Ampliación de una cotización ya aprobada, con autorización explícita del cliente. */
+export type AmpliacionCotizacion = {
+  id: string;
+  pendienteId: string;
+  fecha: string;
+  descripcion: string;
+  cantidad: number;
+  precioUnitario: number;
+  importe: number;
+  autorizada: boolean;
+  fechaAutorizacion?: string;
+  registradoPor: string;
+  motivo: string;
+};
+
 export type EstadoCotizacion = "Pendiente" | "Enviada al cliente" | "Aprobada" | "Rechazada";
 
 export type Cotizacion = {
@@ -131,6 +195,11 @@ export type Cotizacion = {
   observaciones: string;
   estado: EstadoCotizacion;
   reajustes: ReajusteCotizacion[];
+  pendientes?: PendienteCotizacion[];
+  ampliaciones?: AmpliacionCotizacion[];
+  /** Importe que el cliente aprobó originalmente (no cambia con las ampliaciones). */
+  importeAprobado?: number;
+  requiereNuevaConfirmacion?: boolean;
 };
 
 export type Producto = {

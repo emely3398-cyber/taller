@@ -21,6 +21,7 @@ export default function TablaOrdenes({
 
   return (
     <div className="w-full">
+      {/* Registros compactos para teléfono */}
       <ul className="divide-y divide-background-700 md:hidden">
         {ordenes.map((orden) => (
           <li key={orden.id} className="px-3 py-3">
@@ -92,6 +93,7 @@ export default function TablaOrdenes({
         )}
       </ul>
 
+      {/* Tabla administrativa en escritorio y tablet */}
       <div className="hidden w-full overflow-x-auto md:block">
         <table className="admin-table min-w-[1120px]">
           <thead>

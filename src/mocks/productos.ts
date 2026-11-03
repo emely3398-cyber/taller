@@ -20,7 +20,7 @@ export const productos: Producto[] = [
     proveedorId: 'PRV-002',
     ubicacion: 'B-01',
     imagen:
-      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSovxCVmhPfioGGonRrWYedbyaEOf1WxlA69XRZIp8_3Q&s=10',
+      'https://readdy.ai/api/search-image?query=one%20liter%20plastic%20bottle%20of%2020W-50%20motorcycle%20engine%20oil%20standing%20upright%20on%20a%20plain%20light%20gray%20studio%20background%2C%20label%20facing%20camera%2C%20soft%20even%20lighting%2C%20commercial%20product%20photograph%2C%20high%20detail&width=800&height=600&seq=inv-rep1001-a&orientation=landscape',
   },
   {
     codigo: 'REP-1002',
@@ -41,7 +41,7 @@ export const productos: Producto[] = [
     proveedorId: 'PRV-001',
     ubicacion: 'A-01',
     imagen:
-      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS92FBmh34rrWVsTrEfU09UnQQb1pyZR5alyqu9n5je874H1VP4KBfgnd1c&s=10',
+      'https://readdy.ai/api/search-image?query=small%20cylindrical%20black%20motorcycle%20oil%20filter%20standing%20upright%20on%20a%20plain%20light%20gray%20studio%20surface%2C%20metal%20thread%20visible%2C%20soft%20even%20lighting%2C%20commercial%20product%20photograph&width=800&height=600&seq=inv-rep1002-a&orientation=landscape',
   },
   {
     codigo: 'REP-1003',
@@ -119,7 +119,7 @@ export const productos: Producto[] = [
     proveedorId: 'PRV-002',
     ubicacion: 'B-03',
     imagen:
-      'https://cemacogt.vtexassets.com/arquivos/ids/393520-800-800?v=638439146627230000&width=800&height=800&aspect=true',
+      'https://readdy.ai/api/search-image?query=single%20motorcycle%20spark%20plug%20with%20metal%20thread%20and%20white%20ceramic%20insulator%20lying%20diagonally%20on%20a%20plain%20light%20gray%20studio%20background%2C%20soft%20even%20lighting%2C%20macro%20commercial%20product%20photograph&width=800&height=600&seq=inv-rep2001-a&orientation=landscape',
   },
   {
     codigo: 'REP-2002',
@@ -159,7 +159,7 @@ export const productos: Producto[] = [
     proveedorId: 'PRV-003',
     ubicacion: 'D-01',
     imagen:
-      'https://construherramientas.com.gt/web/image/product.template/40564/image_1024?unique=e404ff3',
+      'https://readdy.ai/api/search-image?query=pair%20of%20motorcycle%20front%20brake%20pads%20with%20friction%20material%20and%20metal%20backing%20plate%20arranged%20side%20by%20side%20on%20a%20plain%20light%20gray%20studio%20surface%2C%20soft%20even%20lighting%2C%20commercial%20product%20photograph&width=800&height=600&seq=inv-rep3001-a&orientation=landscape',
   },
   {
     codigo: 'REP-3002',
@@ -237,10 +237,10 @@ export const productos: Producto[] = [
     proveedorId: 'PRV-003',
     ubicacion: 'C-01',
     imagen:
-      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS0nQ8_lTod8p_0nMYHwnfICE00alIkMXxTmqpUSQveOrpIs0LJ7AgS_K4&s=10',
+      'https://readdy.ai/api/search-image?query=coiled%20motorcycle%20drive%20chain%20with%20gold%20colored%20links%20resting%20on%20a%20plain%20light%20gray%20studio%20background%2C%20soft%20even%20lighting%2C%20commercial%20product%20photograph%2C%20high%20detail&width=800&height=600&seq=inv-rep4001-a&orientation=landscape',
     imagenes: [
-      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS0nQ8_lTod8p_0nMYHwnfICE00alIkMXxTmqpUSQveOrpIs0LJ7AgS_K4&s=10',
-      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS0nQ8_lTod8p_0nMYHwnfICE00alIkMXxTmqpUSQveOrpIs0LJ7AgS_K4&s=10',
+      'https://readdy.ai/api/search-image?query=coiled%20motorcycle%20drive%20chain%20with%20gold%20colored%20links%20resting%20on%20a%20plain%20light%20gray%20studio%20background%2C%20soft%20even%20lighting%2C%20commercial%20product%20photograph%2C%20high%20detail&width=800&height=600&seq=inv-rep4001-a&orientation=landscape',
+      'https://readdy.ai/api/search-image?query=close%20up%20of%20motorcycle%20chain%20links%20with%20master%20link%20clip%20on%20a%20plain%20light%20gray%20studio%20surface%2C%20macro%20detail%20of%20metal%20rollers%2C%20soft%20even%20lighting%2C%20commercial%20product%20photograph&width=800&height=600&seq=inv-rep4001-b&orientation=landscape',
     ],
   },
   {
@@ -357,6 +357,6 @@ export const productos: Producto[] = [
     proveedorId: 'PRV-001',
     ubicacion: 'A-06',
     imagen:
-      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSQsyosWoPrvhGJSeusw3Skx_nSt_1kOAUHQahvu9aLJo8MLoraT7de7eCE&s=10',
+      'https://readdy.ai/api/search-image?query=motorcycle%20cylinder%20and%20piston%20kit%20components%20arranged%20neatly%20on%20a%20plain%20light%20gray%20studio%20surface%2C%20aluminum%20cylinder%20barrel%20with%20piston%20and%20rings%2C%20soft%20even%20lighting%2C%20commercial%20product%20photograph&width=800&height=600&seq=inv-rep6002-a&orientation=landscape',
   },
 ];

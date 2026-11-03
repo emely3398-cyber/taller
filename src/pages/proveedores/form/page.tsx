@@ -161,7 +161,7 @@ export default function ProveedorFormPage() {
           <div>
             <Panel
               title="Productos asociados"
-              hint="Marca los productos que vende este proveedor."
+              hint="Marque los productos del inventario que provee este proveedor."
               flush
             >
               <ul className="max-h-[420px] divide-y divide-background-700 overflow-y-auto">
